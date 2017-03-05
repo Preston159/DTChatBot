@@ -66,7 +66,7 @@ public class Main {
 								break BLOCK;
 							}
 							if(messageA.length == 1) {
-								sendMessage(channel, "Discord channel set to #" + channel.toString());
+								sendMessage(channel, "Discord channel set to #" + channel.getName());
 								if(!servers.containsKey(message.getChannelReceiver().getServer().getId())) {
 									addServer(message.getChannelReceiver().getServer().getId(), null, channel);
 								}
