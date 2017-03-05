@@ -59,11 +59,11 @@ public class Main {
 						}
 						if(messageA[0].equals("!setchannel")) BLOCK: {
 							if(!hasRole) {
-								channel.sendMessage("You don't have permission to do that, " + message.getAuthor().getName());
+								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
 								break BLOCK;
 							}
 							if(messageA.length == 1) {
-								message.getChannelReceiver().sendMessage("Discord channel set to #" + channel.toString());
+								sendMessage(channel, "Discord channel set to #" + channel.toString());
 								if(!servers.containsKey(message.getChannelReceiver().getServer().getId())) {
 									addServer(message.getChannelReceiver().getServer().getId(), null, channel);
 								}
@@ -78,15 +78,15 @@ public class Main {
 								servers.get(serverID)[tChannel] = twitchChannel;
 								((IrcBot) servers.get(serverID)[ircBot]).switchChannel(oldChannel, twitchChannel);
 								if(oldChannel != null) {
-									message.getChannelReceiver().sendMessage("Twitch twitchChannel changed from " + oldChannel.substring(1)
+									sendMessage(channel, "Twitch twitchChannel changed from " + oldChannel.substring(1)
 											+ " to " + twitchChannel.substring(1));
 								} else {
-									message.getChannelReceiver().sendMessage("Twitch twitchChannel set to " + twitchChannel.substring(1));
+									sendMessage(channel, "Twitch twitchChannel set to " + twitchChannel.substring(1));
 								}
 							}
 						} else if(messageA[0].equals("!about")) {
 							Runnable task = () -> {
-								channel.sendMessage("I am a bot which relays Twitch chat to a Discord channel\n" +
+								sendMessage(channel, "I am a bot which relays Twitch chat to a Discord channel\n" +
 										"I am currently in beta, so please be nice\n" +
 										"I currently don't save data, so if I'm restarted or crash you will have to reset me\n" +
 										"To set the required role to change my settings, use `!setrole <role name>`\n" +
@@ -99,19 +99,19 @@ public class Main {
 							thread.start();
 						} else if(messageA[0].equals("!setrole")) BLOCK: {
 							if(!hasRole) {
-								channel.sendMessage("You don't have permission to do that, " + message.getAuthor().getName());
+								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
 								break BLOCK;
 							}
 							if(messageA.length < 2) {
 								servers.get(server.getId())[reqRole] = null;
-								channel.sendMessage("Role requirement removed");
+								sendMessage(channel, "Role requirement removed");
 								break BLOCK;
 							}
 							String newRole = messageA[1];
 							for(Role r : server.getRoles()) {
 								if(r.getName().equalsIgnoreCase(newRole)) {
 									servers.get(server.getId())[reqRole] = r.getId();
-									channel.sendMessage("Required role changed to " + r.getName());
+									sendMessage(channel, "Required role changed to " + r.getName());
 									break;
 								}
 							}
@@ -120,7 +120,7 @@ public class Main {
 								message.getContent().substring(0, 1) != "!") {
 							String serverID = message.getChannelReceiver().getServer().getId();
 							((IrcBot) servers.get(serverID)[ircBot])
-									.sendMessage((String) servers.get(serverID)[tChannel], message.getAuthor().getName() + ": " + message.getContent());
+									sendMessage(channel, (String) servers.get(serverID)[tChannel], message.getAuthor().getName() + ": " + message.getContent());
 						}	*/	//allow bot to relay from Discord channel to Twitch channel, disabled due to rate limiting
 					}
 				});
@@ -156,5 +156,9 @@ public class Main {
 		record[3] = server.length == 3 ? createBot((String) record[0]) : server[3];
 		record[4] = null;
 		servers.put((String) record[0], record);
+	}
+	
+	private static void sendMessage(Channel channel, String message) {
+		channel.sendMessage("\u200B" + message);
 	}
 }
