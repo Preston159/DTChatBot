@@ -209,4 +209,9 @@ public class Main {
 	public static void sendMessage(Channel channel, String message) {
 		channel.sendMessage("\u200B" + message);
 	}
+	
+	public static String escape(String string) {
+		string = string.replace("\\", "\\\\").replace("*", "\\*").replace("~", "\\~").replace("_", "\\_");
+		return string;
+	}
 }
