@@ -36,6 +36,9 @@ public class Main {
 	
 	public static HashMap<String, Object[]> servers = new HashMap<String, Object[]>();
 	
+	static HashMap<String, Long> debugTime = new HashMap<String, Long>();
+	static HashMap<String, Long> aboutTime = new HashMap<String, Long>();
+	
 	public static DiscordAPI api = null;
 	
 	public static void main(String[] args) {
@@ -94,18 +97,34 @@ public class Main {
 								}
 							}
 						} else if(messageA[0].equals("about")) {
-							Runnable task = () -> {
-								sendMessage(channel, "I am a bot which relays Twitch chat to a Discord channel\n" +
-										"I am currently in beta, so please be nice\n" +
-										"To set the required role to change my settings, use `dt setrole <role name>`\n" +
-										"Currently, you can set the required role to one you aren't in, so be careful!\n" +
-										"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
-										"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
-										"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot");
+							Long time = System.currentTimeMillis() / 1000L;
+							Long newTime = time + new Integer(60 * 10).longValue();
+							boolean run = false;
+							if(!aboutTime.containsKey(server.getId())) {
+								run = true;
+							} else {
+								run = time > aboutTime.get(server.getId());
+								if(run)
+									System.out.println(time + ">" + aboutTime.get(server.getId()));
+								else
+									System.out.println(time + "<" + aboutTime.get(server.getId()));
+							}
+							if(run) {
+								Runnable task = () -> {
+									sendMessage(channel, "I am a bot which relays Twitch chat to a Discord channel\n" +
+											"I am currently in beta, so please be nice\n" +
+											"To set the required role to change my settings, use `dt setrole <role name>`\n" +
+											"Currently, you can set the required role to one you aren't in, so be careful!\n" +
+											"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
+											"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
+											"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
+											"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot");
 
-							};
-							Thread thread = new Thread(task);
-							thread.start();
+								};
+								Thread thread = new Thread(task);
+								thread.start();
+								aboutTime.put(server.getId(), newTime);
+							}
 						} else if(messageA[0].equals("setrole")) BLOCK: {
 							if(!hasRole) {
 								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
@@ -156,6 +175,25 @@ public class Main {
 								FileManager.saveAll();
 								sendMessage(channel, "Servers saved");
 							}
+						} else if(messageA[0].equals("debug")) {
+							Long time = System.currentTimeMillis() / 1000L;
+							Long newTime = time + new Integer(60 * 10).longValue();
+							boolean run = false;
+							if(!debugTime.containsKey(server.getId())) {
+								run = true;
+							} else {
+								run = time > debugTime.get(server.getId());
+								if(run)
+									System.out.println(time + ">" + debugTime.get(server.getId()));
+								else
+									System.out.println(time + "<" + debugTime.get(server.getId()));
+							}
+							if(run) {
+								sendMessage(channel, server.getId() + ":" + channel.getId() + "\n" +
+										"This command will be disabled for 10 minutes to prevent spamming");
+								debugTime.put(server.getId(), newTime);
+							}
+							
 						}
 					/*	else if(!message.getAuthor().getName().equalsIgnoreCase(DISCORD_USERNAME) &&
 								message.getContent().substring(0, 1) != "!") {
