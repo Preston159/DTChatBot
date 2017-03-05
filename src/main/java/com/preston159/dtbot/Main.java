@@ -40,7 +40,10 @@ public class Main {
 			public void onSuccess(final DiscordAPI api) {
 				api.registerListener(new MessageCreateListener() {
 					public void onMessageCreate(DiscordAPI api, Message message) {
-						String[] messageA = message.getContent().toLowerCase().split(" ");
+						if(message.getContent().length() < 3 || !message.getContent().substring(0, 3).equalsIgnoreCase("dt ")) {
+							return;
+						}
+						String[] messageA = message.getContent().substring(3).toLowerCase().split(" ");
 						if(messageA.length == 0)
 							return;
 						boolean hasRole = false;
@@ -57,7 +60,7 @@ public class Main {
 						} else {
 							hasRole = true;
 						}
-						if(messageA[0].equals("!setchannel")) BLOCK: {
+						if(messageA[0].equals("setchannel")) BLOCK: {
 							if(!hasRole) {
 								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
 								break BLOCK;
@@ -84,20 +87,20 @@ public class Main {
 									sendMessage(channel, "Twitch twitchChannel set to " + twitchChannel.substring(1));
 								}
 							}
-						} else if(messageA[0].equals("!about")) {
+						} else if(messageA[0].equals("about")) {
 							Runnable task = () -> {
 								sendMessage(channel, "I am a bot which relays Twitch chat to a Discord channel\n" +
 										"I am currently in beta, so please be nice\n" +
 										"I currently don't save data, so if I'm restarted or crash you will have to reset me\n" +
-										"To set the required role to change my settings, use `!setrole <role name>`\n" +
+										"To set the required role to change my settings, use `dt setrole <role name>`\n" +
 										"Currently, you can set the required role to one you aren't in, so be careful!\n" +
-										"To set the Discord channel you want me to relay chat to, use `!setchannel` in that channel\n" +
-										"To set the Twitch chat you want me to relay from, use `!setchannel <username>`");
+										"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
+										"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`");
 
 							};
 							Thread thread = new Thread(task);
 							thread.start();
-						} else if(messageA[0].equals("!setrole")) BLOCK: {
+						} else if(messageA[0].equals("setrole")) BLOCK: {
 							if(!hasRole) {
 								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
 								break BLOCK;
@@ -158,7 +161,7 @@ public class Main {
 		servers.put((String) record[0], record);
 	}
 	
-	private static void sendMessage(Channel channel, String message) {
+	public static void sendMessage(Channel channel, String message) {
 		channel.sendMessage("\u200B" + message);
 	}
 }
