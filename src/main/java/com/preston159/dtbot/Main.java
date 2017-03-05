@@ -191,10 +191,6 @@ public class Main {
 								run = true;
 							} else {
 								run = time > debugTime.get(server.getId());
-								if(run)
-									System.out.println(time + ">" + debugTime.get(server.getId()));
-								else
-									System.out.println(time + "<" + debugTime.get(server.getId()));
 							}
 							if(run) {
 								sendMessage(channel, server.getId() + ":" + channel.getId() + "\n" +
