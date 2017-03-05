@@ -81,10 +81,10 @@ public class Main {
 								servers.get(serverID)[tChannel] = twitchChannel;
 								((IrcBot) servers.get(serverID)[ircBot]).switchChannel(oldChannel, twitchChannel);
 								if(oldChannel != null) {
-									sendMessage(channel, "Twitch twitchChannel changed from " + oldChannel.substring(1)
+									sendMessage(channel, "Twitch channel changed from " + oldChannel.substring(1)
 											+ " to " + twitchChannel.substring(1));
 								} else {
-									sendMessage(channel, "Twitch twitchChannel set to " + twitchChannel.substring(1));
+									sendMessage(channel, "Twitch channel set to " + twitchChannel.substring(1));
 								}
 							}
 						} else if(messageA[0].equals("about")) {
