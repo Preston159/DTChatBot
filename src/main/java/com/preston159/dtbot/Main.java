@@ -15,6 +15,7 @@ import de.btobastian.javacord.DiscordAPI;
 import de.btobastian.javacord.Javacord;
 import de.btobastian.javacord.entities.Channel;
 import de.btobastian.javacord.entities.Server;
+import de.btobastian.javacord.entities.User;
 import de.btobastian.javacord.entities.message.Message;
 import de.btobastian.javacord.entities.message.MessageHistory;
 import de.btobastian.javacord.entities.permissions.Role;
@@ -42,6 +43,7 @@ public class Main {
 		api.connect(new FutureCallback<DiscordAPI>() {
 			
 			public void onSuccess(final DiscordAPI api) {
+				FileManager.loadAll();
 				api.registerListener(new MessageCreateListener() {
 					public void onMessageCreate(DiscordAPI api, Message message) {
 						if(message.getContent().length() < 3 || !message.getContent().substring(0, 3).equalsIgnoreCase("dt ")) {
@@ -95,11 +97,11 @@ public class Main {
 							Runnable task = () -> {
 								sendMessage(channel, "I am a bot which relays Twitch chat to a Discord channel\n" +
 										"I am currently in beta, so please be nice\n" +
-										"I currently don't save data, so if I'm restarted or crash you will have to reset me\n" +
 										"To set the required role to change my settings, use `dt setrole <role name>`\n" +
 										"Currently, you can set the required role to one you aren't in, so be careful!\n" +
 										"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
-										"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`");
+										"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
+										"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot");
 
 							};
 							Thread thread = new Thread(task);
@@ -148,7 +150,12 @@ public class Main {
 							};
 							Thread thread = new Thread(task);
 							thread.start();
-							
+						} else if(messageA[0].equals("savestate")) {
+							User author = message.getAuthor();
+							if(author.getName().equals("Preston159") && author.getDiscriminator().equals("6030")) {
+								FileManager.saveAll();
+								sendMessage(channel, "Servers saved");
+							}
 						}
 					/*	else if(!message.getAuthor().getName().equalsIgnoreCase(DISCORD_USERNAME) &&
 								message.getContent().substring(0, 1) != "!") {
@@ -182,7 +189,7 @@ public class Main {
 		return bot;
 	}
 	
-	private static void addServer(Object... server) {
+	public static void addServer(Object... server) {
 		Object[] record = new Object[5];
 		record[0] = server[0];
 		record[1] = server[1];
@@ -190,6 +197,13 @@ public class Main {
 		record[3] = server.length == 3 ? createBot((String) record[0]) : server[3];
 		record[4] = null;
 		servers.put((String) record[0], record);
+	}
+	
+	public static void reloadServer(Object[] server, String role) {
+		addServer(server);
+		if(!role.equals("null"))
+			servers.get((String) server[0])[reqRole] = role;
+		((IrcBot) servers.get((String) server[0])[ircBot]).switchChannel(null, (String) server[tChannel]);
 	}
 	
 	public static void sendMessage(Channel channel, String message) {
