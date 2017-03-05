@@ -1,7 +1,10 @@
 package com.preston159.dtbot;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.jibble.pircbot.IrcException;
 
@@ -13,6 +16,7 @@ import de.btobastian.javacord.Javacord;
 import de.btobastian.javacord.entities.Channel;
 import de.btobastian.javacord.entities.Server;
 import de.btobastian.javacord.entities.message.Message;
+import de.btobastian.javacord.entities.message.MessageHistory;
 import de.btobastian.javacord.entities.permissions.Role;
 import de.btobastian.javacord.listener.message.MessageCreateListener;
 
@@ -118,6 +122,33 @@ public class Main {
 									break;
 								}
 							}
+						} else if(messageA[0].equals("clear")) {
+							//work in progress
+							int num = 100;
+							if(messageA.length > 1) {
+								try {
+									num = Integer.valueOf(messageA[1]);
+								} catch(NumberFormatException e) { }
+							}
+							if(num > 100)
+								num = 100;
+							Future<MessageHistory> fmh = channel.getMessageHistory(num);
+							Runnable task = () -> {
+								MessageHistory mh = null;
+								try {
+									mh = fmh.get();
+								} catch (InterruptedException | ExecutionException e) {
+									sendMessage(channel, "Unable to delete messages");
+								}
+								if(mh == null)
+									return;
+								Collection<Message> messages = mh.getMessages();
+								channel.bulkDelete(messages.toArray(new Message[messages.size()]));
+								System.out.println(messages);
+							};
+							Thread thread = new Thread(task);
+							thread.start();
+							
 						}
 					/*	else if(!message.getAuthor().getName().equalsIgnoreCase(DISCORD_USERNAME) &&
 								message.getContent().substring(0, 1) != "!") {
