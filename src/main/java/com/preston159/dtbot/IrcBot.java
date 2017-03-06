@@ -34,7 +34,9 @@ public class IrcBot extends PircBot {
 		if(from != null && from.substring(0, 1).equals("#")) {
 			this.sendRawLineViaQueue("PART " + from);
 		}
-		this.joinChannel(to);
+		if(to != null) {
+			this.joinChannel(to);
+		}
 	}
 	
 }

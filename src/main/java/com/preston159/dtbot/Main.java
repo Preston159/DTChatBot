@@ -81,7 +81,10 @@ public class Main {
 								}
 								servers.get(message.getChannelReceiver().getServer().getId())[dChannel] = channel;
 							} else {
-								String twitchChannel = "#" + messageA[1].toLowerCase();
+								String twitchChannel = null;
+								if(!messageA[1].equalsIgnoreCase("none")) {
+									twitchChannel = "#" + messageA[1].toLowerCase();
+								}
 								if(!servers.containsKey(message.getChannelReceiver().getServer().getId())) {
 									addServer(message.getChannelReceiver().getServer().getId(), twitchChannel, null);
 								}
@@ -89,6 +92,9 @@ public class Main {
 								String oldChannel = (String) servers.get(serverID)[tChannel];
 								servers.get(serverID)[tChannel] = twitchChannel;
 								((IrcBot) servers.get(serverID)[ircBot]).switchChannel(oldChannel, twitchChannel);
+								if(twitchChannel == null) {
+									twitchChannel = "#none";
+								}
 								if(oldChannel != null) {
 									sendMessage(channel, "Twitch channel changed from " + oldChannel.substring(1)
 											+ " to " + twitchChannel.substring(1));
@@ -112,20 +118,22 @@ public class Main {
 							if(run) {
 								Runnable task = () -> {
 									sendMessage(channel, "I am a bot which relays Twitch chat to a Discord channel\n" +
-                                            "I am currently in beta, so please be nice\n" +
-                                            "To set the required role to change my settings, use `dt setrole <role name>`\n" +
-                                            "Currently, you can set the required role to one you aren't in, so be careful!\n" +
-                                            "To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
-                                            "To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
-                                            "You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
-                                            "My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot");
+											"I am currently in beta, so please be nice\n" +
+											"To set the required role to change my settings, use `dt setrole <role name>`\n" +
+											"Currently, you can set the required role to one you aren't in, so be careful!\n" +
+											"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
+											"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
+                                            "To disconnect from Twitch chat, use `dt setchannel none`\n" +
+											"To disable my relaying, use `dt setchannel none`\n" +
+											"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
+											"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot");
 
 								};
 								Thread thread = new Thread(task);
 								thread.start();
 								aboutTime.put(server.getId(), newTime);
 							}
-                            message.getAuthor().sendMessage("I am a bot which relays Twitch chat to a Discord channel\n" +
+							message.getAuthor().sendMessage("I am a bot which relays Twitch chat to a Discord channel\n" +
 									"I am currently in beta, so please be nice\n" +
 									"To set the required role to change my settings, use `dt setrole <role name>`\n" +
 									"Currently, you can set the required role to one you aren't in, so be careful!\n" +
@@ -245,7 +253,9 @@ public class Main {
 		addServer(server);
 		if(!role.equals("null"))
 			servers.get((String) server[0])[reqRole] = role;
-		((IrcBot) servers.get((String) server[0])[ircBot]).switchChannel(null, (String) server[tChannel]);
+		if(!((String) server[tChannel]).equals("null")) {
+			((IrcBot) servers.get((String) server[0])[ircBot]).switchChannel(null, (String) server[tChannel]);
+		}
 	}
 	
 	public static void sendMessage(Channel channel, String message) {
