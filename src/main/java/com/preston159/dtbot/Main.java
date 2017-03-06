@@ -70,6 +70,7 @@ public class Main {
 							hasRole = true;
 						}
 						if(messageA[0].equals("setchannel")) BLOCK: {
+							//TODO: change permission error behavior
 							if(!hasRole) {
 								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
 								break BLOCK;
@@ -115,33 +116,27 @@ public class Main {
 								else
 									System.out.println(time + "<" + aboutTime.get(server.getId()));
 							}
+							String aboutMessage = "I am a bot which relays Twitch chat to a Discord channel\n" +
+									"I am currently in beta, so please be nice\n" +
+									"To set the required role to change my settings, use `dt setrole <role name>`\n" +
+									"Currently, you can set the required role to one you aren't in, so be careful!\n" +
+									"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
+									"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
+									"To disconnect from Twitch chat, use `dt setchannel none`\n" +
+									"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
+									"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot";
 							if(run) {
 								Runnable task = () -> {
-									sendMessage(channel, "I am a bot which relays Twitch chat to a Discord channel\n" +
-											"I am currently in beta, so please be nice\n" +
-											"To set the required role to change my settings, use `dt setrole <role name>`\n" +
-											"Currently, you can set the required role to one you aren't in, so be careful!\n" +
-											"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
-											"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
-                                            "To disconnect from Twitch chat, use `dt setchannel none`\n" +
-											"To disable my relaying, use `dt setchannel none`\n" +
-											"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
-											"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot");
+									sendMessage(channel, aboutMessage);
 
 								};
 								Thread thread = new Thread(task);
 								thread.start();
 								aboutTime.put(server.getId(), newTime);
 							}
-							message.getAuthor().sendMessage("I am a bot which relays Twitch chat to a Discord channel\n" +
-									"I am currently in beta, so please be nice\n" +
-									"To set the required role to change my settings, use `dt setrole <role name>`\n" +
-									"Currently, you can set the required role to one you aren't in, so be careful!\n" +
-									"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
-									"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
-									"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
-									"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot");
+							message.getAuthor().sendMessage(aboutMessage);
 						} else if(messageA[0].equals("setrole")) BLOCK: {
+							//TODO: check if role exists
 							if(!hasRole) {
 								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
 								break BLOCK;
