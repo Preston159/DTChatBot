@@ -58,6 +58,8 @@ public class Main {
 	
 	static HashMap<String, Long> aboutTime = new HashMap<String, Long>();
 	
+	private static final String commandPrefix = "dt ";
+	
 	public static DiscordAPI api = null;
 	
 	public static void main(String[] args) {
@@ -80,10 +82,11 @@ public class Main {
 				game.start();
 				api.registerListener(new MessageCreateListener() {
 					public void onMessageCreate(DiscordAPI api, Message message) {
-						if(message.getContent().length() < 3 || !message.getContent().substring(0, 3).equalsIgnoreCase("dt ")) {
+						if(message.getContent().length() < commandPrefix.length() ||
+								!message.getContent().substring(0, commandPrefix.length()).equalsIgnoreCase(commandPrefix)) {
 							return;
 						}
-						String[] messageA = message.getContent().substring(3).toLowerCase().split(" ");
+						String[] messageA = message.getContent().substring(commandPrefix.length()).toLowerCase().split(" ");
 						if(messageA.length == 0)
 							return;
 						boolean hasRole = false;
