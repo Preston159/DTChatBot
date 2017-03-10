@@ -55,7 +55,6 @@ public class Main {
 	
 	public static HashMap<String, Object[]> servers = new HashMap<String, Object[]>();
 	
-	static HashMap<String, Long> debugTime = new HashMap<String, Long>();
 	static HashMap<String, Long> aboutTime = new HashMap<String, Long>();
 	
 	public static DiscordAPI api = null;
@@ -122,7 +121,7 @@ public class Main {
 									sendMessage(channel, "Twitch channel set to " + twitchChannel.substring(1));
 								}
 							}
-						} else if(messageA[0].equals("about")) {
+						} else if(messageA[0].equals("about") || messageA[0].equals("help")) {
 							Long time = System.currentTimeMillis() / 1000L;
 							Long newTime = time + new Integer(60 * 10).longValue();
 							boolean run = false;
@@ -206,19 +205,21 @@ public class Main {
 								sendMessage(channel, "Servers saved");
 							}
 						} else if(messageA[0].equals("debug")) {
-							Long time = System.currentTimeMillis() / 1000L;
-							Long newTime = time + new Integer(60 * 10).longValue();
-							boolean run = false;
-							if(!debugTime.containsKey(server.getId())) {
-								run = true;
-							} else {
-								run = time > debugTime.get(server.getId());
-							}
-							if(run) {
-								sendMessage(channel, server.getId() + ":" + channel.getId() + "\n" +
-										"This command will be disabled for 10 minutes to prevent spamming");
-								debugTime.put(server.getId(), newTime);
-							}
+							Runnable task = () -> {
+								User owner;
+								try {
+									owner = server.getOwner().get();
+								} catch (InterruptedException | ExecutionException e) {
+									return;
+								}
+								if(message.getAuthor().equals(owner)) {
+									owner.sendMessage(server.getId() + ":" + channel.getId());
+								} else {
+									message.getAuthor().sendMessage("Only the owner of the server can run this command.");
+								}
+							};
+							Thread thread = new Thread(task);
+							thread.start();
 							
 						}
 					/*	else if(!message.getAuthor().getName().equalsIgnoreCase(DISCORD_USERNAME) &&
