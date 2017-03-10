@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.jibble.pircbot.IrcException;
 
@@ -65,6 +66,18 @@ public class Main {
 			
 			public void onSuccess(final DiscordAPI api) {
 				FileManager.loadAll();
+				Runnable task = () -> {
+					while(true) {
+						api.setGame("dt help");
+						try {
+							TimeUnit.SECONDS.sleep(60);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				};
+				Thread game = new Thread(task);
+				game.start();
 				api.registerListener(new MessageCreateListener() {
 					public void onMessageCreate(DiscordAPI api, Message message) {
 						if(message.getContent().length() < 3 || !message.getContent().substring(0, 3).equalsIgnoreCase("dt ")) {
