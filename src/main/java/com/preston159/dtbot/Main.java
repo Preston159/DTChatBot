@@ -158,7 +158,7 @@ public class Main {
 									"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
 									"To disconnect from Twitch chat, use `dt setchannel none`\n" +
 									"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
-									"My owner is Preston159, and you can find my source here: https://github.com/Preston159/DTChatBot";
+									"My owner is Preston159#6030, and you can find my source here: https://github.com/Preston159/DTChatBot";
 							if(run) {
 								Runnable task = () -> {
 									sendMessage(channel, aboutMessage);
