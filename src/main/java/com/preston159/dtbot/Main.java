@@ -20,6 +20,7 @@
 package com.preston159.dtbot;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
@@ -68,6 +69,7 @@ public class Main {
 			
 			public void onSuccess(final DiscordAPI api) {
 				FileManager.loadAll();
+				MessageQueue.start();
 				Runnable task = () -> {
 					while(true) {
 						api.setGame("dt help");
@@ -80,6 +82,7 @@ public class Main {
 				};
 				Thread game = new Thread(task);
 				game.start();
+				
 				api.registerListener(new MessageCreateListener() {
 					public void onMessageCreate(DiscordAPI api, Message message) {
 						if(message.getContent().length() < commandPrefix.length() ||
@@ -290,7 +293,10 @@ public class Main {
 	}
 	
 	public static void sendMessage(Channel channel, String message) {
-		channel.sendMessage("\u200B" + message);
+		if(!MessageQueue.messageQueue.containsKey(channel.getServer())) {
+			MessageQueue.messageQueue.put(channel.getServer(), new ArrayList<QueuedMessage>());
+		}
+		MessageQueue.messageQueue.get(channel.getServer()).add(new QueuedMessage("\u200B" + message, channel));
 	}
 	
 	public static String escape(String string) {
