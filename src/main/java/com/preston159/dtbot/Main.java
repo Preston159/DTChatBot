@@ -41,6 +41,7 @@ import de.btobastian.javacord.entities.message.Message;
 import de.btobastian.javacord.entities.message.MessageHistory;
 import de.btobastian.javacord.entities.permissions.Role;
 import de.btobastian.javacord.listener.message.MessageCreateListener;
+import de.btobastian.javacord.utils.LoggerUtil;
 
 public class Main {
 	
@@ -68,6 +69,7 @@ public class Main {
 		api.connect(new FutureCallback<DiscordAPI>() {
 			
 			public void onSuccess(final DiscordAPI api) {
+                LoggerUtil.setDebug(false);
 				FileManager.loadAll();
 				MessageQueue.start();
 				Runnable task = () -> {
