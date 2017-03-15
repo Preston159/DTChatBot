@@ -25,7 +25,13 @@ import de.btobastian.javacord.entities.Channel;
 
 public class IrcBot extends PircBot {
 	
+	/**
+	 * The username used by the <code>IrcBot</code>
+	 */
 	String name;
+	/**
+	 * The ID of the Discord server to which this <code>IrcBot</code> is connected
+	 */
 	String sID;
 	
 	public IrcBot(String user, String serverID) {
@@ -34,21 +40,28 @@ public class IrcBot extends PircBot {
 		sID = serverID;
 	}
 	
+	/**
+	 * Run when the <code>IrcBot</code> receives a message on its channel and sends this message on the Discord channel
+	 */
 	public void onMessage(String channel, String sender, String login, String hostname, String message) {
 		if(sender.equalsIgnoreCase(name))
 			return;
-		mReceive(channel, sender, message);
+		Main.sendMessage(((Channel) Main.servers.get(sID)[Main.dChannel]), "**" + Main.escape(sender) + "**: " + Main.escape(message));
 	}
 	
-	public void mReceive(String channel, String sender, String message) {
-		if(!sender.equalsIgnoreCase(Auth.TWITCH_USERNAME))
-			Main.sendMessage(((Channel) Main.servers.get(sID)[Main.dChannel]), "**" + Main.escape(sender) + "**: " + Main.escape(message));
-	}
-	
+	/**
+	 * Run when the <code>IrcBot</code> receives a private message
+	 */
 	public void onPrivateMessage(String sender, String login, String hostname, String message) {
 		
 	}
 	
+	/**
+	 * Switches the Twitch channel to which the <code>IrcBot</code> is connected
+	 * @param from	The Twitch channel from which the <code>IrcBot</code> is disconnecting
+	 * @param to	The Twitch channel to which the <code>IrcBot</code> is connecting
+	 * Channels must begin with '#'
+	 */
 	public void switchChannel(String from, String to) {
 		if(from != null && from.substring(0, 1).equals("#")) {
 			this.sendRawLineViaQueue("PART " + from);

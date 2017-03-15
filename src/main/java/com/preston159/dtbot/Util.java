@@ -21,6 +21,12 @@ package com.preston159.dtbot;
 
 public class Util {
 	
+	/**
+	 * Gets the time difference between two Unix timestamps
+	 * @param from	The beginning timestamp
+	 * @param to	The ending timestamp
+	 * @return	A string specifying the difference between the two timestamps in a human-readable format
+	 */
 	public static String time(long from, long to) {
 		long diff = to - from;
 		long days = 0, hours = 0, minutes = 0, seconds = 0;
@@ -34,6 +40,11 @@ public class Util {
 		return (days > 0 ? days + "d" : "") + (hours > 0 ? hours + "h" : "") + (minutes > 0 ? minutes + "m" : "") + seconds + "s";
 	}
 	
+	/**
+	 * Gets the time difference between a Unix timestamp and the current time
+	 * @param from	The beginning timestamp
+	 * @return	A string specifying the difference between the specified timestamp and the current time in a human-readable format
+	 */
 	public static String time(long from) {
 		return time(from, System.currentTimeMillis() / 1000);
 	}

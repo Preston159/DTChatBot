@@ -28,9 +28,18 @@ import de.btobastian.javacord.entities.Server;
 
 public class MessageQueue {
 	
+	/**
+	 * The queue of messages to be sent out
+	 */
 	public static volatile HashMap<Server, ArrayList<QueuedMessage>> messageQueue = new HashMap<Server, ArrayList<QueuedMessage>>();
+	/**
+	 * The queue of messages which have been ratelimited and need to be sent out in the future
+	 */
 	public static volatile HashMap<Server, ArrayList<QueuedMessage>> failedQueue = new HashMap<Server, ArrayList<QueuedMessage>>();
 	
+	/**
+	 * Starts the threads for dealing with queued messages
+	 */
 	public static void start() {
 		Runnable messageQueueTask = () -> {
 			//TODO: task in task for run every second

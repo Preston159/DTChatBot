@@ -45,21 +45,63 @@ import de.btobastian.javacord.utils.LoggerUtil;
 
 public class Main {
 	
+	/**
+	 * The array location of the server's ID in <code>servers</code>
+	 * Type: <code>String</code>
+	 */
 	public static final int sID = 0;
+	/**
+	 * The array location of the server's Twitch channel in <code>servers</code>
+	 * Type: <code>String</code>
+	 */
 	public static final int tChannel = 1;
+	/**
+	 * The array location of the server's Discord channel in <code>servers</code>
+	 * Type: <code>Channel</code>
+	 */
 	public static final int dChannel = 2;
+	/**
+	 * The array location of the server's <code>IrcBot</code> in <code>servers</code>
+	 * Type: <code>IrcBot</code>
+	 */
 	public static final int ircBot = 3;
+	/**
+	 * The array location of the server's required role in <code>servers</code>
+	 * Type: <code>String</code>
+	 */
 	public static final int reqRole = 4;
 	
+	/**
+	 * A <code>HashMap</code> containing the information needed for Discord server and Twitch IRC communication
+	 */
 	public static HashMap<String, Object[]> servers = new HashMap<String, Object[]>();
+	/**
+	 * The number of servers to which the bot is currently connected
+	 */
 	static int numServers = 0;
+	/**
+	 * The total number of users on the servers to which the bot is currently connected
+	 */
 	static int numUsers = 0;
+	/**
+	 * The Unix timestamp at which the bot connected
+	 */
 	static long startTime = 0;
 	
+	/**
+	 * A <code>HashMap</code> containing the time at which the "about" command can next be run on each server
+	 */
 	static HashMap<String, Long> aboutTime = new HashMap<String, Long>();
 	
+	/**
+	 * The prefix for running bot commands
+	 * Can be any length and does not have to end in a space character
+	 */
 	private static final String commandPrefix = "dt ";
 	
+	/**
+	 * The <code>DiscordAPI</code> through which the bot is connected
+	 */
 	public static DiscordAPI api = null;
 	
 	public static void main(String[] args) {
