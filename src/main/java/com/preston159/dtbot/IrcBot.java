@@ -41,7 +41,7 @@ public class IrcBot extends PircBot {
 	}
 	
 	public void mReceive(String channel, String sender, String message) {
-		if(!sender.equalsIgnoreCase(Main.TWITCH_USERNAME))
+		if(!sender.equalsIgnoreCase(Auth.TWITCH_USERNAME))
 			Main.sendMessage(((Channel) Main.servers.get(sID)[Main.dChannel]), "**" + Main.escape(sender) + "**: " + Main.escape(message));
 	}
 	

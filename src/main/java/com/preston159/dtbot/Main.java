@@ -45,11 +45,6 @@ import de.btobastian.javacord.utils.LoggerUtil;
 
 public class Main {
 	
-	static final String DISCORD_USERNAME = "dtchatbot";
-	static final String DISCORD_API_TOKEN = "<redacted>";
-	public static final String TWITCH_USERNAME = "dtchatbot";
-	static final String TWITCH_OAUTH = "<redacted>";
-	
 	public static final int sID = 0;
 	public static final int tChannel = 1;
 	public static final int dChannel = 2;
@@ -65,11 +60,11 @@ public class Main {
 	public static DiscordAPI api = null;
 	
 	public static void main(String[] args) {
-		api = Javacord.getApi(DISCORD_API_TOKEN, true);
+		api = Javacord.getApi(Auth.DISCORD_API_TOKEN, true);
 		api.connect(new FutureCallback<DiscordAPI>() {
 			
 			public void onSuccess(final DiscordAPI api) {
-                LoggerUtil.setDebug(false);
+				LoggerUtil.setDebug(false);
 				FileManager.loadAll();
 				MessageQueue.start();
 				Runnable task = () -> {
@@ -243,6 +238,10 @@ public class Main {
 							thread.start();
 							
 						}
+						/* else if(messageA[0].equals("info")) {
+							int numServers = servers.size();
+							api.
+						}*/
 					/*	else if(!message.getAuthor().getName().equalsIgnoreCase(DISCORD_USERNAME) &&
 								message.getContent().substring(0, 1) != "!") {
 							String serverID = message.getChannelReceiver().getServer().getId();
@@ -264,10 +263,10 @@ public class Main {
 	}
 	
 	public static IrcBot createBot(String serverID) {
-		IrcBot bot = new IrcBot(TWITCH_USERNAME, serverID);
+		IrcBot bot = new IrcBot(Auth.TWITCH_USERNAME, serverID);
 		bot.setVerbose(false);
 		try {
-			bot.connect("irc.twitch.tv", 6667, TWITCH_OAUTH);
+			bot.connect("irc.twitch.tv", 6667, Auth.TWITCH_OAUTH);
 		} catch (IrcException | IOException e) {
 			e.printStackTrace();
 		}
