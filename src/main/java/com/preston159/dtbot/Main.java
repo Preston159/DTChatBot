@@ -52,6 +52,9 @@ public class Main {
 	public static final int reqRole = 4;
 	
 	public static HashMap<String, Object[]> servers = new HashMap<String, Object[]>();
+	static int numServers = 0;
+	static int numUsers = 0;
+	static long startTime = 0;
 	
 	static HashMap<String, Long> aboutTime = new HashMap<String, Long>();
 	
@@ -64,12 +67,25 @@ public class Main {
 		api.connect(new FutureCallback<DiscordAPI>() {
 			
 			public void onSuccess(final DiscordAPI api) {
+				startTime = System.currentTimeMillis() / 1000l;
 				LoggerUtil.setDebug(false);
 				FileManager.loadAll();
 				MessageQueue.start();
-				Runnable task = () -> {
+				Runnable gameTask = () -> {
+					int count = 0;
 					while(true) {
 						api.setGame("dt help");
+						if(--count < 0) {
+							int users = 0;
+							int servers = 0;
+							for(Server s : api.getServers()) {
+								users += s.getMembers().size();
+								servers++;
+							}
+							numUsers = users;
+							numServers = servers;
+							count = 5;
+						}
 						try {
 							TimeUnit.SECONDS.sleep(60);
 						} catch (InterruptedException e) {
@@ -77,8 +93,8 @@ public class Main {
 						}
 					}
 				};
-				Thread game = new Thread(task);
-				game.start();
+				Thread gameThread = new Thread(gameTask);
+				gameThread.start();
 				
 				api.registerListener(new MessageCreateListener() {
 					public void onMessageCreate(DiscordAPI api, Message message) {
@@ -138,18 +154,15 @@ public class Main {
 								}
 							}
 						} else if(messageA[0].equals("about") || messageA[0].equals("help")) {
-							Long time = System.currentTimeMillis() / 1000L;
+							Long time = System.currentTimeMillis() / 1000l;
 							Long newTime = time + new Integer(60 * 10).longValue();
 							boolean run = false;
 							if(!aboutTime.containsKey(server.getId())) {
 								run = true;
 							} else {
 								run = time > aboutTime.get(server.getId());
-								if(run)
-									System.out.println(time + ">" + aboutTime.get(server.getId()));
-								else
-									System.out.println(time + "<" + aboutTime.get(server.getId()));
 							}
+							String uptime = Util.time(startTime);
 							String aboutMessage = "I am a bot which relays Twitch chat to a Discord channel\n" +
 									"I am currently in beta, so please be nice\n" +
 									"To set the required role to change my settings, use `dt setrole <role name>`\n" +
@@ -158,7 +171,9 @@ public class Main {
 									"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
 									"To disconnect from Twitch chat, use `dt setchannel none`\n" +
 									"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
-									"My owner is Preston159#6030, and you can find my source here: https://github.com/Preston159/DTChatBot";
+									"My owner is Preston159#6030, and you can find my source here: https://github.com/Preston159/DTChatBot\n" +
+									"I am currently in use on `" + numServers + "` servers for a total of `" + numUsers + "` users\n" +
+									"Uptime: " + uptime;
 							if(run) {
 								Runnable task = () -> {
 									sendMessage(channel, aboutMessage);
@@ -238,10 +253,6 @@ public class Main {
 							thread.start();
 							
 						}
-						/* else if(messageA[0].equals("info")) {
-							int numServers = servers.size();
-							api.
-						}*/
 					/*	else if(!message.getAuthor().getName().equalsIgnoreCase(DISCORD_USERNAME) &&
 								message.getContent().substring(0, 1) != "!") {
 							String serverID = message.getChannelReceiver().getServer().getId();
