@@ -54,10 +54,11 @@ public class FileManager {
 	}
 	
 	public static void loadAll() {
-		System.out.println("Loading servers...");
 		if(!file.exists()) {
+			System.out.println("No servers to load");
 			return;
 		}
+		System.out.println("Loading servers...");
 		Properties p = new Properties();
 		try {
 			FileInputStream fis = new FileInputStream(file);
