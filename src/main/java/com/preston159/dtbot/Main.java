@@ -249,13 +249,15 @@ public class Main {
 									break;
 								}
 							}
-						} else if(messageA[0].equals("clear")) {
+						} else if(messageA[0].equals("clear")) BLOCK: {
 							//work in progress
 							int num = 100;
 							if(messageA.length > 1) {
 								try {
 									num = Integer.valueOf(messageA[1]);
-								} catch(NumberFormatException e) { }
+								} catch(NumberFormatException e) {
+									break BLOCK;
+								}
 							}
 							if(num > 100)
 								num = 100;
