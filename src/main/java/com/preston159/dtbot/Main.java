@@ -148,6 +148,9 @@ public class Main {
 								!message.getContent().substring(0, commandPrefix.length()).equalsIgnoreCase(commandPrefix)) {
 							return;
 						}
+						if(message.isPrivateMessage()) {
+							return;
+						}
 						String[] messageA = message.getContent().substring(commandPrefix.length()).toLowerCase().split(" ");
 						if(messageA.length == 0)
 							return;
