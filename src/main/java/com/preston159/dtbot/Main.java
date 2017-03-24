@@ -118,13 +118,17 @@ public class Main {
 					while(true) {
 						api.setGame("dt help");
 						if(--count < 0) {
-							int users = 0;
 							int servers = 0;
+							Collection<User> userList = new ArrayList<User>();
 							for(Server s : api.getServers()) {
-								users += s.getMembers().size();
+								userList.addAll(s.getMembers());
 								servers++;
 							}
-							numUsers = users;
+							numUsers = userList.size();
+							for(User u : userList) {
+								if(u.isBot())
+									numUsers--; //don't count bots
+							}
 							numServers = servers;
 							count = 5;
 						}
@@ -154,6 +158,7 @@ public class Main {
 							hasRole = true;
 						} else if(servers.get(server.getId())[reqRole] != null) {
 							String roleID = (String) servers.get(server.getId())[reqRole];
+							//TODO: use getRoleById and check if role exists
 							for(Role r : message.getAuthor().getRoles(server)) {
 								if(r.getId().equalsIgnoreCase(roleID))
 									hasRole = true;
@@ -227,7 +232,6 @@ public class Main {
 							}
 							message.getAuthor().sendMessage(aboutMessage);
 						} else if(messageA[0].equals("setrole")) BLOCK: {
-							//TODO: check if role exists
 							if(!hasRole) {
 								sendMessage(channel, "You don't have permission to do that, " + message.getAuthor().getName());
 								break BLOCK;
