@@ -70,11 +70,21 @@ public class Main {
 	 * Type: <code>String</code>
 	 */
 	public static final int reqRole = 4;
+	/**
+	 * The array location of the server's Twitch account, if not the default
+	 * Type: <code>String</code> or <code>null</code>
+	 */
+	public static final int twitchAcct = 5;
+	/**
+	 * The array location of the server's Twitch account Oauth key, if not the default
+	 * Type: <code>String</code> or <code>null</code>
+	 */
+	public static final int twitchOauth = 6;
 	
 	/**
 	 * A <code>HashMap</code> containing the information needed for Discord server and Twitch IRC communication
 	 */
-	public static HashMap<String, Object[]> servers = new HashMap<String, Object[]>();
+	public static volatile HashMap<String, Object[]> servers = new HashMap<String, Object[]>();
 	/**
 	 * The number of servers to which the bot is currently connected
 	 */
@@ -92,6 +102,11 @@ public class Main {
 	 * A <code>HashMap</code> containing the time at which the "about" command can next be run on each server
 	 */
 	static HashMap<String, Long> aboutTime = new HashMap<String, Long>();
+	
+	/**
+	 * A <code>HashMap</code> mapping a user's ID to the server for which a Twitch oauth is being awaited
+	 */
+	static HashMap<String, String> awaitingOauth = new HashMap<String, String>();
 	
 	/**
 	 * The prefix for running bot commands
@@ -131,6 +146,8 @@ public class Main {
 							}
 							numServers = servers;
 							count = 5;
+							//TODO: fix saving servers right after loading
+							FileManager.saveAll();
 						}
 						try {
 							TimeUnit.SECONDS.sleep(60);
@@ -144,30 +161,85 @@ public class Main {
 				
 				api.registerListener(new MessageCreateListener() {
 					public void onMessageCreate(DiscordAPI api, Message message) {
+						final Channel channel = message.getChannelReceiver();
+						
+						if(message.isPrivateMessage()) {
+							String userId = message.getAuthor().getId();
+							if(awaitingOauth.containsKey(userId)) {
+								String serverId = awaitingOauth.get(userId);
+								Object[] s = servers.get(awaitingOauth.get(userId));
+								Thread createBot = new Thread(() -> {
+									String oauth = message.getContent();
+									IrcBot bot = null;
+									String user = (String) s[twitchAcct];
+									if(user == null)
+										return;
+									bot = createBot(serverId, user, oauth);
+									try {
+										TimeUnit.SECONDS.sleep(5);
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
+									if(!bot.isConnected()) {
+										message.getAuthor().sendMessage("Failed to login using specified Twitch credentials");
+										bot.dispose();
+									} else {
+										message.getAuthor().sendMessage("Twitch login successful");
+										s[twitchOauth] = oauth;
+										((IrcBot) s[ircBot]).dispose();
+										bot.switchChannel(null, (String) s[tChannel]);
+										s[ircBot] = bot;
+									}
+								});
+								createBot.start();
+								awaitingOauth.remove(userId);
+							}
+							return;
+						}
+						
+						Server server = channel.getServer();
+						
 						if(message.getContent().length() < commandPrefix.length() ||
 								!message.getContent().substring(0, commandPrefix.length()).equalsIgnoreCase(commandPrefix)) {
+							if(!message.getAuthor().getName().equalsIgnoreCase(Auth.DISCORD_USERNAME)) {
+								if(((IrcBot) servers.get(server.getId())[ircBot]).getName().equals(Auth.TWITCH_USERNAME)) {
+									return;
+								}
+								String serverID = message.getChannelReceiver().getServer().getId();
+								((IrcBot) servers.get(serverID)[ircBot]).
+										sendMessage((String) servers.get(serverID)[tChannel], message.getAuthor().getName() + ": " + message.getContent());
+							}
 							return;
 						}
-						if(message.isPrivateMessage()) {
-							return;
-						}
+						
 						String[] messageA = message.getContent().substring(commandPrefix.length()).toLowerCase().split(" ");
 						if(messageA.length == 0)
 							return;
 						boolean hasRole = false;
-						final Channel channel = message.getChannelReceiver();
-						Server server = channel.getServer();
-						if(!servers.containsKey(server.getId())) {
-							hasRole = true;
+						if(!servers.containsKey(server.getId()) || servers.get(server.getId())[reqRole] == null) {
+							try {
+								hasRole = message.getAuthor().equals(server.getOwner().get());
+							} catch (InterruptedException | ExecutionException e) {
+								e.printStackTrace();
+							}
 						} else if(servers.get(server.getId())[reqRole] != null) {
 							String roleID = (String) servers.get(server.getId())[reqRole];
-							//TODO: use getRoleById and check if role exists
-							for(Role r : message.getAuthor().getRoles(server)) {
-								if(r.getId().equalsIgnoreCase(roleID))
-									hasRole = true;
+							Role role = server.getRoleById(roleID);
+							if(role == null) {
+								servers.get(server.getId())[reqRole] = null;
+								sendMessage(channel, "The administrative role has been deleted; only the owner of this server can now change my settings.");
+								try {
+									hasRole = message.getAuthor().equals(server.getOwner().get());
+								} catch (InterruptedException | ExecutionException e) {
+									e.printStackTrace();
+								}
+							} else {
+								try {
+									hasRole = message.getAuthor().getRoles(server).contains(role) || message.getAuthor().equals(server.getOwner().get());
+								} catch (InterruptedException | ExecutionException e) {
+									e.printStackTrace();
+								}
 							}
-						} else {
-							hasRole = true;
 						}
 						if(messageA[0].equals("setchannel")) BLOCK: {
 							//TODO: change permission error behavior
@@ -213,6 +285,7 @@ public class Main {
 								run = time > aboutTime.get(server.getId());
 							}
 							String uptime = Util.time(startTime);
+							//TODO: separate info and help commands
 							String aboutMessage = "I am a bot which relays Twitch chat to a Discord channel\n" +
 									"I am currently in beta, so please be nice\n" +
 									"To set the required role to change my settings, use `dt setrole <role name>`\n" +
@@ -220,6 +293,7 @@ public class Main {
 									"To set the Discord channel you want me to relay chat to, use `dt setchannel` in that channel\n" +
 									"To set the Twitch chat you want me to relay from, use `dt setchannel <username>`\n" +
 									"To disconnect from Twitch chat, use `dt setchannel none`\n" +
+									"To connect me to your own Twitch account and allow message forwarding from Discord to Twitch, use `dt twitch login <twitch username>`\n" +
 									"You can add me to your server here: https://discordapp.com/oauth2/authorize?client_id=287319485675864064&scope=bot&permissions=0\n" +
 									"My owner is Preston159#6030, and you can find my source here: https://github.com/Preston159/DTChatBot\n" +
 									"I am currently in use on `" + numServers + "` servers for a total of `" + numUsers + "` users\n" +
@@ -303,13 +377,40 @@ public class Main {
 							Thread thread = new Thread(task);
 							thread.start();
 							
+						} else if(messageA[0].equals("twitch")) BLOCK: {
+							if(!hasRole) {
+								break BLOCK;
+							}
+							Object[] s = servers.get(server.getId());
+							if(messageA.length == 1) {
+								IrcBot bot = (IrcBot) s[ircBot];
+								if(!bot.isConnected()) {
+									sendMessage(channel, "Currently not connected to Twitch.  Use `" + commandPrefix + "twitch default` to reconnect");
+								} else {
+									sendMessage(channel, "Currently connected to Twitch with account " + bot.getName() + " on channel " + 
+											((String) s[tChannel]).substring(1));
+								}
+							} else if(messageA[1].equals("default")) {
+								if((s[twitchAcct] == null || s[twitchOauth] == null) && ((IrcBot) servers.get(server.getId())[ircBot]).isConnected()) {
+									break BLOCK;
+								}
+								((IrcBot) s[ircBot]).dispose();
+								s[twitchAcct] = null;
+								s[twitchOauth] = null;
+								s[ircBot] = createBot(server.getId());
+								((IrcBot) s[ircBot]).switchChannel(null, (String) s[tChannel]);
+							} else if(messageA[1].equals("login")) {
+								if(messageA.length != 3) {
+									sendMessage(channel, "Usage: `" + commandPrefix + "twitch login <twitch username>`");
+									break BLOCK;
+								}
+								s[twitchAcct] = messageA[2].toLowerCase();
+								message.getAuthor().sendMessage("Reply to this message with the oauth key for " + messageA[2].toLowerCase() + "\n" + 
+										"You can get an oauth key here: https://twitchapps.com/tmi/");
+								awaitingOauth.put(message.getAuthor().getId(), server.getId());
+							}
 						}
-					/*	else if(!message.getAuthor().getName().equalsIgnoreCase(DISCORD_USERNAME) &&
-								message.getContent().substring(0, 1) != "!") {
-							String serverID = message.getChannelReceiver().getServer().getId();
-							((IrcBot) servers.get(serverID)[ircBot])
-									sendMessage(channel, (String) servers.get(serverID)[tChannel], message.getAuthor().getName() + ": " + message.getContent());
-						}	*/	//allow bot to relay from Discord channel to Twitch channel, disabled due to rate limiting
+						
 					}
 				});
 				
@@ -329,6 +430,20 @@ public class Main {
 		bot.setVerbose(false);
 		try {
 			bot.connect("irc.twitch.tv", 6667, Auth.TWITCH_OAUTH);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch(IrcException e) {
+			return null;
+		}
+		bot.setMessageDelay(2000l);
+		return bot;
+	}
+	
+	public static IrcBot createBot(String serverID, String username, String oauth) {
+		IrcBot bot = new IrcBot(username, serverID);
+		bot.setVerbose(false);
+		try {
+			bot.connect("irc.twitch.tv", 6667, oauth);
 		} catch (IrcException | IOException e) {
 			e.printStackTrace();
 		}
@@ -337,21 +452,28 @@ public class Main {
 	}
 	
 	public static void addServer(Object... server) {
-		Object[] record = new Object[5];
+		Object[] record = new Object[7];
 		record[0] = server[0];
 		record[1] = server[1];
 		record[2] = server[2];
 		record[3] = server.length == 3 ? createBot((String) record[0]) : server[3];
 		record[4] = null;
+		record[5] = null;
+		record[6] = null;
 		servers.put((String) record[0], record);
 	}
 	
-	public static void reloadServer(Object[] server, String role) {
+	public static void reloadServer(Object[] server, String role, String twitch, String oauth) {
 		addServer(server);
+		Object[] serverA = servers.get((String) server[0]);
 		if(!role.equals("null"))
-			servers.get((String) server[0])[reqRole] = role;
-		if(!((String) server[tChannel]).equals("null")) {
-			((IrcBot) servers.get((String) server[0])[ircBot]).switchChannel(null, (String) server[tChannel]);
+			serverA[reqRole] = role;
+		if(server[tChannel] != null && !((String) server[tChannel]).equals("null")) {
+			((IrcBot) serverA[ircBot]).switchChannel(null, (String) server[tChannel]);
+		}
+		if(!twitch.equals("null") && !oauth.equals("null")) {
+			serverA[twitchAcct] = twitch;
+			serverA[twitchOauth] = oauth;
 		}
 	}
 	

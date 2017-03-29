@@ -32,13 +32,16 @@ public class FileManager {
 	static File file = new File("servers.properties");
 	
 	public static boolean saveAll() {
+		System.out.println("Saving servers...");
 		Properties p = new Properties();
 		for(String s : Main.servers.keySet()) {
 			Object[] server = Main.servers.get(s);
 			String put = (String) server[0] + ";" +
 					(String) server[1] + ";" +
 					((Channel) server[2]).getId() + ";" +
-					(String) server[4];
+					(String) server[4] + ";" +
+					(String) server[5] + ";" +
+					(String) server[6];
 			p.setProperty(s, put);
 		}
 		try {
@@ -48,8 +51,10 @@ public class FileManager {
 			FileOutputStream fos = new FileOutputStream(file);
 			p.store(fos, null);
 		} catch(IOException e) {
+			System.out.println("Saving failed");
 			return false;
 		}
+		System.out.println("Saving complete");
 		return true;
 	}
 	
@@ -67,10 +72,10 @@ public class FileManager {
 		for(Object o : p.keySet()) {
 			String s = p.getProperty((String) o);
 			String[] server = s.split(";");
-			if(server.length != 4) {
+			if(server.length != 6) {
 				continue;
 			}
-			Main.reloadServer(new Object[]{server[0], server[1], Main.api.getChannelById(server[2])}, server[3]);
+			Main.reloadServer(new Object[]{server[0], server[1].equals("null") ? null : server[1], Main.api.getChannelById(server[2])}, server[3], server[4], server[5]);
 		}
 		System.out.println("Servers loaded");
 	}
