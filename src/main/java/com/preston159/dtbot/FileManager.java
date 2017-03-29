@@ -77,6 +77,7 @@ public class FileManager {
 			}
 			Main.reloadServer(new Object[]{server[0], server[1].equals("null") ? null : server[1], Main.api.getChannelById(server[2])}, server[3], server[4], server[5]);
 		}
+		Main.twitchLogin();
 		System.out.println("Servers loaded");
 	}
 	

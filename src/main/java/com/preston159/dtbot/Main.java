@@ -477,6 +477,30 @@ public class Main {
 		}
 	}
 	
+	public static void twitchLogin() {
+		for(String serverId : servers.keySet()) {
+			Object[] s = servers.get(serverId);
+			if(s[twitchAcct] == null || s[twitchOauth] == null)
+				continue;
+			String username = (String) s[twitchAcct];
+			String oauth = (String) s[twitchOauth];
+			IrcBot bot = createBot(serverId, username, oauth);
+			try {
+				TimeUnit.SECONDS.sleep(2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if(bot.isConnected()) {
+				((IrcBot) s[ircBot]).dispose();
+				bot.switchChannel(null, (String) s[tChannel]);
+				s[ircBot] = bot;
+				sendMessage((Channel) s[dChannel], "Connected to Twitch as " + username + ".");
+			} else {
+				sendMessage((Channel) s[dChannel], "Failed to connect to Twitch as " + username + ".  Connected as bot.");
+			}
+		}
+	}
+	
 	public static void sendMessage(Channel channel, String message) {
 		if(!MessageQueue.messageQueue.containsKey(channel.getServer())) {
 			MessageQueue.messageQueue.put(channel.getServer(), new ArrayList<QueuedMessage>());
@@ -484,6 +508,7 @@ public class Main {
 		MessageQueue.messageQueue.get(channel.getServer()).add(new QueuedMessage("\u200B" + message, channel));
 	}
 	
+	//TODO: unescape for Discord->Twitch
 	public static String escape(String string) {
 		string = string.replace("\\", "\\\\").replace("*", "\\*").replace("~", "\\~").replace("_", "\\_");
 		return string;
